@@ -544,14 +544,37 @@ body.bg-pattern-sparkles {
       min-height: 24px;
     }
     .sidebar-brand-title {
+      display: flex;
+      align-items: center;
       font-size: 1rem;
       font-weight: 600;
       color: var(--brand-color, var(--red));
       white-space: nowrap;
       user-select: none;
       position: relative;
+      line-height: 0;
       top: 1px;
       left: -10px;
+    }
+    .odysseus-wordmark {
+      display: block;
+      flex-shrink: 0;
+      color: inherit;
+    }
+    .odysseus-wordmark--sidebar {
+      width: 3.75rem;
+      height: auto;
+    }
+    .brand-sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
     }
     .sidebar-sep {
       display: none;
@@ -1771,6 +1794,7 @@ body.bg-pattern-sparkles {
     @media (max-height: 500px) {
       #welcome-screen { top: 22%; }
       #welcome-screen .welcome-name { font-size: 1.4rem; margin-bottom: 0; }
+      #welcome-screen .odysseus-wordmark--welcome { width: 6rem; }
       #welcome-screen .welcome-sub { opacity: 0; max-height: 0; margin: 0; }
       .incognito-btn { margin-top: 4px !important; }
     }
@@ -1786,6 +1810,7 @@ body.bg-pattern-sparkles {
     @media (max-width: 768px) {
       #welcome-screen { top: 42%; }
       #welcome-screen .welcome-name { margin-bottom: 2px; }
+      #welcome-screen .odysseus-wordmark--welcome { width: 7rem; }
       #welcome-screen .welcome-sub { margin-bottom: 0; }
       #welcome-screen .incognito-btn { margin-top: 6px; }
     }
@@ -1804,6 +1829,12 @@ body.bg-pattern-sparkles {
       height: 1.8rem;
       margin-right: 0.4rem;
       vertical-align: -0.15em;
+      color: var(--brand-color, var(--red));
+    }
+    .odysseus-wordmark--welcome {
+      width: clamp(6.75rem, 18vw, 9rem);
+      height: auto;
+      margin: 0 auto;
       color: var(--brand-color, var(--red));
     }
     #welcome-screen .welcome-sub {
@@ -3740,6 +3771,9 @@ body.bg-pattern-sparkles {
       .sidebar-brand-title {
         font-size: 1.2rem;
         left: 0 !important;
+      }
+      .odysseus-wordmark--sidebar {
+        width: 4rem;
       }
       /* Sidebar inner — bigger spacing */
       .sidebar-inner {
