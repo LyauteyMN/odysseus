@@ -65,7 +65,7 @@ def _email_tag_owner_aliases(account_id: str | None, owner: str = "") -> list[st
             resolved_account_id = account_id
             if not resolved_account_id:
                 try:
-                    cfg = _get_email_config(None, owner=owner)
+                    cfg = _get_email_config(None, owner=owner, warn=False)
                     resolved_account_id = cfg.get("account_id") or None
                     aliases.extend([
                         cfg.get("imap_user") or "",
@@ -927,6 +927,15 @@ def setup_email_routes():
     ):
         """List emails. Uses an 8s in-memory cache + offloads blocking IMAP
         calls to a worker thread so the event loop never stalls."""
+        cfg = _get_email_config(account_id, owner=owner, warn=False)
+        if not (cfg.get("imap_host") and cfg.get("imap_user") and cfg.get("imap_password")):
+            return {
+                "emails": [],
+                "total": 0,
+                "folder": folder,
+                "offset": offset,
+                "unconfigured": True,
+            }
         _deferred = getattr(_start_poller, '_deferred', None)
         if _deferred:
             await _deferred()
@@ -2660,7 +2669,7 @@ def setup_email_routes():
     @router.get("/config")
     async def get_email_config(owner: str = Depends(require_user)):
         """Get email configuration (passwords masked)."""
-        cfg = _get_email_config(owner=owner)
+        cfg = _get_email_config(owner=owner, warn=False)
         cfg["smtp_password"] = "***" if cfg["smtp_password"] else ""
         cfg["imap_password"] = "***" if cfg["imap_password"] else ""
         # Include preferences from settings.json

@@ -453,7 +453,7 @@ def _save_settings(settings):
     atomic_write_json(str(SETTINGS_FILE), settings, indent=2)
 
 
-def _get_email_config(account_id: str | None = None, owner: str = "") -> dict:
+def _get_email_config(account_id: str | None = None, owner: str = "", warn: bool = True) -> dict:
     """Return IMAP/SMTP config as a dict.
 
     Resolution order:
@@ -466,6 +466,9 @@ def _get_email_config(account_id: str | None = None, owner: str = "") -> dict:
 
     Returned dict always has the same shape as before; an `account_id` key is
     added so callers can stamp derivative records (email_ai_replies etc.).
+
+    High-frequency polling paths can pass `warn=False` to quietly detect that
+    email is unconfigured without spamming the server log.
 
     SECURITY: without `owner`, the fallback queries (is_default, first-enabled)
     don't filter by user — so on a multi-user deploy a brand-new account would
@@ -523,9 +526,9 @@ def _get_email_config(account_id: str | None = None, owner: str = "") -> dict:
                     "imap_starttls": bool(row.imap_starttls),
                     "from_address": row.from_address or row.imap_user or "",
                 }
-                if not (cfg["smtp_host"] and cfg["smtp_user"] and cfg["smtp_password"]):
+                if warn and not (cfg["smtp_host"] and cfg["smtp_user"] and cfg["smtp_password"]):
                     logger.warning(f"SMTP not configured for account {row.name!r}")
-                if not (cfg["imap_host"] and cfg["imap_user"] and cfg["imap_password"]):
+                if warn and not (cfg["imap_host"] and cfg["imap_user"] and cfg["imap_password"]):
                     logger.warning(f"IMAP not configured for account {row.name!r}")
                 return cfg
         finally:
@@ -549,9 +552,9 @@ def _get_email_config(account_id: str | None = None, owner: str = "") -> dict:
         "imap_starttls": settings.get("imap_starttls", True),
         "from_address": settings.get("email_from", os.environ.get("EMAIL_FROM", "")),
     }
-    if not (cfg["smtp_host"] and cfg["smtp_user"] and cfg["smtp_password"]):
+    if warn and not (cfg["smtp_host"] and cfg["smtp_user"] and cfg["smtp_password"]):
         logger.warning("SMTP not configured — add an Email Account in Settings or set env vars")
-    if not (cfg["imap_host"] and cfg["imap_user"] and cfg["imap_password"]):
+    if warn and not (cfg["imap_host"] and cfg["imap_user"] and cfg["imap_password"]):
         logger.warning("IMAP not configured — add an Email Account in Settings or set env vars")
     return cfg
 

@@ -722,16 +722,20 @@ async def action_mark_email_boundaries(owner: str, **kwargs) -> Tuple[str, bool]
         import email as _email_mod
         import asyncio as _aio
         from datetime import datetime as _dt
-        from routes.email_helpers import _imap_connect, _decode_header, SCHEDULED_DB
+        from routes.email_helpers import _get_email_config, _imap_connect, _decode_header, SCHEDULED_DB
         from src.endpoint_resolver import resolve_endpoint
         from src.llm_core import llm_call_async
+
+        cfg = _get_email_config(None, owner=owner, warn=False)
+        if not (cfg.get("imap_host") and cfg.get("imap_user") and cfg.get("imap_password")):
+            raise TaskNoop("email not configured")
 
         # Pull recent inbox UIDs + Message-IDs directly via IMAP (the
         # nested helpers in email_routes aren't importable, and this keeps
         # the action self-contained).
         def _pull_recent():
             results = []
-            conn = _imap_connect(None)
+            conn = _imap_connect(None, owner=owner)
             try:
                 conn.select("INBOX", readonly=True)
                 status, data = conn.search(None, "ALL")
@@ -786,7 +790,7 @@ async def action_mark_email_boundaries(owner: str, **kwargs) -> Tuple[str, bool]
             if not uid:
                 continue
             def _fetch_body(_uid):
-                conn = _imap_connect(None)
+                conn = _imap_connect(None, owner=owner)
                 try:
                     conn.select("INBOX", readonly=True)
                     st, data = conn.fetch(_uid, "(BODY.PEEK[TEXT])")
