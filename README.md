@@ -73,9 +73,18 @@ serve engines and Python CLIs are stored in `./data/local`, mounted as
 
 After downloading a model, open **Cookbook -> Serve**, pick the cached model,
 and launch it. When the server answers `/v1/models`, Odysseus adds it to the
-chat model picker automatically. For NVIDIA GPUs in Docker, install the NVIDIA
-Container Toolkit and add `gpus: all` to the `odysseus` service if `nvidia-smi`
-is not visible inside the container.
+chat model picker automatically. For NVIDIA / AMD GPUs in Docker, install
+the host runtime (NVIDIA Container Toolkit or ROCm drivers) and enable the
+matching overlay via `COMPOSE_FILE` in `.env`:
+
+```bash
+# NVIDIA
+COMPOSE_FILE=docker-compose.yml:docker/gpu.nvidia.yml
+# AMD ROCm
+COMPOSE_FILE=docker-compose.yml:docker/gpu.amd.yml
+```
+
+Verify with `docker compose exec odysseus nvidia-smi -L` (or `rocm-smi`).
 
 The default Docker image is intentionally slim. For Python-based serve engines,
 use **Cookbook -> Dependencies** to install vLLM, SGLang, llama-cpp-python, or
@@ -210,6 +219,18 @@ Docker Compose includes these by default. The bundled service ports bind to `127
 ### Optional external services
   - **Ollama** → local LLM server -- [ollama.ai](https://ollama.ai)
 
+### Built-in MCP servers (optional setup)
+
+Odysseus auto-registers a few built-in MCP servers at startup. The npx-based ones (currently the browser server, `@playwright/mcp`) only start when their npm package is already in the local npx cache. If a package isn't cached, that server is skipped with a startup log message explaining what to do, so a fresh install does not block on a multi-minute npm download or hang if Playwright system deps are missing.
+
+To enable the browser MCP (page navigation, screenshots, vision), run once:
+
+```bash
+npx -y @playwright/mcp@latest --version
+```
+
+That installs `@playwright/mcp` plus Playwright (~300MB total). Restart Odysseus and the server will register at startup.
+
 ### Ollama with Docker
 If Odysseus is running in Docker and Ollama is running on the host, add the endpoint in Settings as:
 
@@ -243,6 +264,16 @@ docs/      landing page (index.html) + preview clips
 ## Data
 All user data lives in `data/` (gitignored): `app.db` (sessions, messages, documents),
 `memory.json`, `presets.json`, `uploads/`, `personal_docs/`, `chroma/`, `settings.json`.
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=pewdiepie-archdaemon%2Fodysseus&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=pewdiepie-archdaemon/odysseus&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## License
 MIT -- see [LICENSE](LICENSE) and [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md).
